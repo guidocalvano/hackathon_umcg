@@ -77,7 +77,7 @@ def load_image_tensor(image_file_paths):
 
 training_images, one_hot_labels = load_training_set(TRAINING_DATA_FILE_PATH, TRAINING_IMAGE_DATA_PATH, corrupt_training_images)
 
-test_images = load_test_set(TEST_DATA_FILE_PATH, corrupt_training_images)
+test_images = load_test_set(TEST_DATA_FILE_PATH, TEST_IMAGE_DATA_PATH, corrupt_test_images)
 
 
 
