@@ -13,8 +13,9 @@ from keras.layers import MaxPooling2D
 from keras.layers import AveragePooling2D
 from keras.layers import Flatten
 from keras.layers import Dense
-
+import config
 import data_import
+import presentation
 
 def create_model(input_shape):
     classifier = Sequential()
@@ -50,14 +51,21 @@ def run():
 
     model = create_model(input_shape)
 
-    model.fit(normalized_training_images, one_hot_labels, epochs=10, batch_size=32)
+    results = model.fit(normalized_training_images, one_hot_labels, validation_split=.7, epochs=10, batch_size=32)
 
-# learning the model
-classifier.fit_generator(training_set,
-                        steps_per_epoch=8000,
-                        epochs=25,
-                        validation_data=test_set,
-                        validation_steps=2000)
+    accuracy = get_accuracy_from_results(results)
+
+    predictions = model.predict(normalized_test_images)
+
+    output_file_path = config.PREDICTION_PATH + 'accuracy_' + str(accuracy) + '.csv'
+
+    presentation.save_predictions(config.TEST_DATA_FILE_PATH, output_file_path, predictions)
+
+def get_accuracy_from_results(results):
+    accuracy = 0
+
+    return accuracy
+
 #################################################################################
 ###### Part 3 - Making new prediction
 #################################################################################
