@@ -73,6 +73,8 @@ def load_image_tensor(image_file_paths):
 
     image_tensor = np.concatenate(image_array_list)
 
+    image_tensor = np.expand_dims(image_tensor, axis=3)
+
     return image_tensor
 
 def normalize_data(data):

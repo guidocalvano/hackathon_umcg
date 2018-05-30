@@ -14,64 +14,44 @@ from keras.layers import AveragePooling2D
 from keras.layers import Flatten
 from keras.layers import Dense
 
-classifier = Sequential()
+import data_import
 
-# Step 1 = Convolution
-classifier.add(Conv2D(32, 3, 3, border_mode = 'same', input_shape =(64, 64, 3), activation = 'relu' ))
+def create_model(input_shape):
+    classifier = Sequential()
 
-# Step 2 Max Pooling
-classifier.add(AveragePooling2D(pool_size = (2, 2)))
+    # Step 0 downsampling
+    classifier.add(AveragePooling2D(pool_size=(8, 8), input_shape=input_shape)) # to downsample to 8, 8
 
-# Adding second convolutional layer
-classifier.add(Conv2D(32, 3, 3, border_mode = 'same', input_shape =(64, 64, 3), activation = 'relu' ))
-classifier.add(AveragePooling2D(pool_size = (2, 2)))
+    # Step 1 = Convolution
+    classifier.add(Conv2D(32, 5, 1, border_mode='valid', activation='relu' ))
 
-# Step 3 Flattening
-classifier.add(Flatten())
-# Step 4 Full Connection
-classifier.add(Dense(output_dim = 128, activation = 'relu' ))
-classifier.add(Dense(output_dim = 1, activation = 'sigmoid' ))
+    # Step 2 Max Pooling
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))
 
-# Compiling the CNN
-classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+    # Adding second convolutional layer
+    classifier.add(Conv2D(32, 5, 1, border_mode='valid', activation='relu'))
+    classifier.add(MaxPooling2D(pool_size=(2, 2)))
 
-#################################################################################
-# Part 2 = Fitting the CNN to the images
-#################################################################################
-from keras.preprocessing.image import ImageDataGenerator
-# dit hoeven we mogelijk buiten de zca_epsilon niet meer te doen.
-train_datagen = ImageDataGenerator(featurewise_center=True,
-                                             samplewise_center=False,
-                                             featurewise_std_normalization=True,
-                                             samplewise_std_normalization=False,
-                                             zca_whitening=False,
-                                             zca_epsilon=1e-06,
-                                             rotation_range=0.0,
-                                             width_shift_range=0.0,
-                                             height_shift_range=0.0,
-                                             brightness_range=None,
-                                             shear_range=0.0,
-                                             zoom_range=0.0,
-                                             channel_shift_range=0.0,
-                                             fill_mode='nearest',
-                                             cval=0.0,
-                                             horizontal_flip=False,
-                                             vertical_flip=False,
-                                             rescale=1./255,
-                                             preprocessing_function=None,
-                                             data_format=None,
-                                             validation_split=0.0)
-test_datagen = ImageDataGenerator(rescale=1./255)
+    # Step 3 Flattening
+    classifier.add(Flatten())
+    # Step 4 Full Connection
+    classifier.add(Dense(output_dim=4, activation='softmax'))
 
-training_set = train_datagen.flow_from_directory('train_data/images',
-                                                target_size=(64, 64),
-                                                batch_size=32,
-                                                class_mode='binary')
+    # Compiling the CNN
+    classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-test_set = test_datagen.flow_from_directory('test_data/images',
-                                            target_size=(64, 64),
-                                            batch_size=32,
-                                            class_mode='binary')
+    return classifier
+
+
+def run():
+    normalized_training_images, one_hot_labels, normalized_test_images = data_import.import_all_data()
+
+    input_shape = normalized_training_images.shape[1:]
+
+    model = create_model(input_shape)
+
+    model.fit(normalized_training_images, one_hot_labels, epochs=10, batch_size=32)
+
 # learning the model
 classifier.fit_generator(training_set,
                         steps_per_epoch=8000,
