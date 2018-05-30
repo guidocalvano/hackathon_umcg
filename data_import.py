@@ -10,16 +10,23 @@ import config
 
 corrupt_training_images = [2613]
 corrupt_test_images = []
-
-def load_training_set(file_path, image_data_path, corrupt_indices):
+#input to label
+def split_training_validation(file_path):
     input_to_label_csv = pd.read_csv(file_path)
 
     input_to_label_csv = input_to_label_csv.drop(corrupt_indices, axis=0)
     input_to_label_csv.index = range(input_to_label_csv.index.shape[0])
+    
+    validation_df = input_to_label_csv.sample(n=1192, frac=None, replace=False, weights=None, random_state=None, axis=None)
+    training_df = training_df.remove(validation_df)
+    return training_df, validation_df    
+
+def load_input_set(input_df, image_data_path, corrupt_indices):
+
     # input_to_label_csv = input_to_label_csv.reset_index()
     # get relevant data
-    labels = input_to_label_csv.iloc[:, 2]
-    file_names = input_to_label_csv.iloc[:, 0]
+    labels = input_df.iloc[:, 2]
+    file_names = input_df.iloc[:, 0]
     image_file_paths = image_data_path + file_names
 
     image_tensor = load_image_tensor(image_file_paths)
@@ -82,13 +89,18 @@ def normalize_test_images(data, mean, standard_deviation):
     return standardized_data
 
 def import_all_data():
-    training_images, one_hot_labels = load_training_set(config.TRAINING_DATA_FILE_PATH, config.TRAINING_IMAGE_DATA_PATH, corrupt_training_images)
+    training_df, validation_df = split_training_validation(config.TRAINING_DATA_FILE_PATH)
+    
+    
+    training_images, training_one_hot_labels = load_input_set(training_df, config.TRAINING_IMAGE_DATA_PATH, corrupt_training_images)
+    validation_images, validation_one_hot_labels = load_input_set(training_df, config.TRAINING_IMAGE_DATA_PATH, corrupt_training_images)
+
     normalized_training_images, mean, standard_deviation = normalize_data(training_images)
 
     test_images = load_test_set(config.TEST_DATA_FILE_PATH, config.TEST_IMAGE_DATA_PATH, corrupt_test_images)
     normalized_test_images = normalize_test_images(test_images, mean, standard_deviation)
 
-    return normalized_training_images, one_hot_labels, normalized_test_images
+    return normalized_training_images, training_one_hot_labels, normalized_test_images
 
 
 
