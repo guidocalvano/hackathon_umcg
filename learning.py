@@ -2,7 +2,7 @@
 """
 Created on Wed May 30 13:30:47 2018
 
-@author: MaximdeMey
+@author: Guido Sales Calvano & Maxim de Mey
 """
 #################################################################################
 # training the model
